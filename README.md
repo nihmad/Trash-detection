@@ -4,6 +4,9 @@ Classification automatique de déchets recyclables par vision par ordinateur.
 Le projet compare deux approches : un **CNN personnalisé** entraîné de zéro
 et un modèle de **transfert d'apprentissage basé sur ResNet50**.
 
+Le projet peut s'exécuter de deux façons : **en local** (installation classique)
+ou **dans le cloud via Google Colab**, sans rien installer sur sa machine.
+
 ## Classes prédites
 
 Cinq classes harmonisées à partir du dataset TrashNet :
@@ -26,7 +29,10 @@ des cinq matières recyclables visées. L'harmonisation est documentée dans
 Le dataset TrashNet est disponible sur Kaggle :
 https://www.kaggle.com/datasets/feyzazkefe/trashnet
 
-Après téléchargement, organisez les images ainsi :
+Deux façons de le récupérer.
+
+**Téléchargement manuel (usage local).** Téléchargez l'archive depuis Kaggle,
+décompressez-la, puis organisez les dossiers de classes ainsi :
 
 ```
 data/raw/
@@ -37,7 +43,17 @@ data/raw/
 └── plastic/
 ```
 
-Les images ne sont pas versionnées (voir `.gitignore`).
+**Téléchargement automatique avec kagglehub (recommandé en Colab).**
+
+```python
+import kagglehub
+path = kagglehub.dataset_download("feyzazkefe/trashnet")
+print("Données téléchargées dans :", path)
+```
+
+Dans ce cas, les images restent dans le cache kagglehub : il suffit de
+passer ce chemin via l'option `--raw-dir` des scripts (voir plus bas). Les
+images ne sont jamais versionnées (voir `.gitignore`).
 
 ## Structure du projet
 
@@ -46,7 +62,9 @@ project/
 ├── data/
 │   ├── raw/          # Images sources (un dossier par classe)
 │   └── processed/    # Données intermédiaires éventuelles
-├── notebooks/        # Exploration et expérimentation
+├── notebooks/
+│   ├── 01_exploration.ipynb   # Exploration du dataset
+│   └── colab_pipeline.ipynb   # Pipeline complet prêt pour Google Colab
 ├── src/
 │   ├── preprocessing.py  # Pipeline OpenCV
 │   ├── dataset.py        # Indexation, harmonisation, split, tf.data
@@ -68,7 +86,27 @@ project/
 └── LICENSE
 ```
 
-## Installation
+## Exécution sur Google Colab (sans installation locale)
+
+Le notebook `notebooks/colab_pipeline.ipynb` enchaîne toutes les étapes du
+projet dans le cloud, avec un GPU gratuit et aucune installation locale. Il
+ne contient pas la logique du projet : il **orchestre** les modules `src/`,
+qui restent la source de vérité.
+
+Étapes :
+
+1. Ouvrir le notebook dans Colab (`Fichier → Importer un notebook`).
+2. Activer le GPU : `Exécution → Modifier le type d'exécution → GPU (T4)`.
+3. Renseigner l'URL de son dépôt GitHub dans la première cellule.
+4. Exécuter les cellules de haut en bas.
+
+Le notebook clone le dépôt, télécharge le dataset avec kagglehub, localise
+automatiquement le dossier des classes, entraîne et évalue les deux modèles,
+affiche les figures, puis permet de tester le modèle sur ses propres images.
+Une cellule optionnelle sauvegarde les modèles et rapports dans Google Drive
+(la session Colab étant éphémère).
+
+## Installation locale
 
 Python 3.11 ou supérieur est requis.
 
@@ -103,6 +141,13 @@ python -m src.train --model cnn --epochs 30
 python -m src.train --model resnet --epochs 15 --fine-tune-epochs 10
 ```
 
+Si les données viennent de kagglehub, ajouter l'option `--raw-dir` avec le
+chemin renvoyé (ou le sous-dossier contenant les classes) :
+
+```bash
+python -m src.train --model cnn --epochs 30 --raw-dir "/chemin/vers/les/classes"
+```
+
 Chaque entraînement produit :
 - le modèle sauvegardé dans `models/<modèle>.keras` ;
 - l'historique dans `reports/metrics/<modèle>_history.json` ;
@@ -114,6 +159,8 @@ Chaque entraînement produit :
 python -m src.evaluate --model cnn
 python -m src.evaluate --model resnet
 ```
+
+L'option `--raw-dir` s'applique de la même façon qu'à l'entraînement.
 
 Génère pour chaque modèle :
 - les métriques globales (accuracy, precision, recall, F1) ;
@@ -133,7 +180,8 @@ streamlit run app/streamlit_app.py
 
 L'application permet de charger une image, de choisir le modèle, puis
 d'afficher la classe prédite, le score de confiance et la distribution des
-probabilités.
+probabilités. En environnement notebook (Colab), la dernière cellule du
+pipeline offre la même fonction de test directement dans le notebook.
 
 ## Tests
 

@@ -1,0 +1,44 @@
+# Octets compilés / caches Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environnements virtuels
+.venv/
+venv/
+env/
+ENV/
+
+# Outils et caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+*.egg-info/
+.coverage
+htmlcov/
+
+# Données : non versionnées (volumineuses, à télécharger séparément)
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Modèles entraînés (artefacts lourds)
+models/*
+!models/.gitkeep
+
+# Rapports générés
+reports/figures/*
+reports/metrics/*
+!reports/figures/.gitkeep
+!reports/metrics/.gitkeep
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Configuration éditeur
+.vscode/
+.idea/
